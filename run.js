@@ -32,7 +32,7 @@ const run = async () => {
       ('credit' in t ? t.credit : 0)
       - ('debit' in t ? t.debit : 0)
     ),
-    payee_name: 'Clipper', // TODO
+    payee_name: 'Clipper', // TODO: transfer for auto-load, different agencies
     category_id: process.env.CATEGORY,
     memo: ynabMemo(t),
     cleared: 'cleared',
