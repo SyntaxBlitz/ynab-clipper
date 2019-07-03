@@ -9,6 +9,8 @@
   "author": "Timothy J. Aveni <me@timothyaveni.com> (https://timothyaveni.com/)",
   "license": "MIT",
   "dependencies": {
+    "crypto-promise": "^2.1.0",
+    "dateformat": "^3.0.3",
     "dotenv": "^8.0.0",
     "pdf2json": "^1.1.8",
     "puppeteer": "^1.18.1",

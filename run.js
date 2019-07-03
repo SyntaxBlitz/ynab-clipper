@@ -1,73 +1,58 @@
-const ynab = require('ynab');
-const sleep = require('sleep-promise');
-const path = require('path');
-const fs = require('fs-extra');
-const puppeteer = require('puppeteer-extra'); // overkill? probably. but I'm having a good time
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+  // application specific logging, throwing an error, or other logic here
+});
 
-puppeteer.use(
-  require('puppeteer-extra-plugin-user-preferences')({
-    userPrefs: {
-      download: {
-        prompt_for_download: false,
-        default_directory: path.join(__dirname, 'pdf'),
-      },
-      plugins: {
-        always_open_pdf_externally: true,
-      },
-    },
-  },
-));
+
+const dateformat = require('dateformat');
+const ynab = require('ynab');
+
+const fetchClipperPDF = require('./fetchClipperPDF');
+const parseClipperPDF = require('./parseClipperPDF');
+const normalizeTransactions = require('./normalizeTransactions');
 
 require('dotenv').config();
 
 const api = new ynab.API(process.env.TOKEN);
 
 const run = async () => {
-  const browser = await puppeteer.launch({ headless: false });
-  try {
-    const page = await browser.newPage();
-    await page.goto('https://www.clippercard.com/ClipperWeb/index.do');
+  const pdfBuffer = await fetchClipperPDF();
+  const rawTransactions = await parseClipperPDF(pdfBuffer);
+  const transactions = normalizeTransactions(rawTransactions);
 
-    await page.mainFrame().click('#myRollover');
+  const syncTransactions = transactions.filter(
+    t => t.product === 'Clipper Cash'
+      && ('credit' in t || 'debit' in t),
+  );
 
-    const [ loginFrame ] = page.mainFrame().childFrames().filter(f => f.url() === 'https://www.clippercard.com/ClipperCard/loginFrame.jsf');
+  const ynabTransactions = await Promise.all(syncTransactions.map(async t => ({
+    account_id: process.env.ACCOUNT,
+    date: dateformat(t.date, 'yyyy-mm-dd'),
+    amount: 100 * 10 * (
+      ('credit' in t ? t.credit : 0)
+      - ('debit' in t ? t.debit : 0)
+    ),
+    payee_name: 'Clipper', // TODO
+    category_id: process.env.CATEGORY,
+    memo: `${dateformat(t.date, 'h:MM TT')}: ${t.location || '-'} ${t.route || '-'} (${t.description})`,
+    cleared: 'cleared',
+    import_id: (await t.digest()).substring(0, 36),
+  })));
 
-    await (await loginFrame.$('#j_idt13\\:username')).type(process.env.CLIPPER_USERNAME);
-    await (await loginFrame.$('#j_idt13\\:password')).type(process.env.CLIPPER_PASSWORD);
-    await (await loginFrame.$('#j_idt13\\:password')).press('Enter');
+  await api.transactions.createTransactions(process.env.BUDGET, { transactions: ynabTransactions } );
 
-    await page.waitForNavigation();
-
-    await (await page.mainFrame().$(`#tran${process.env.CLIPPER_CARD_SERIAL}`)).click();
-
-    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type('06/01/2019');
-    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type('06/30/2019');
-
-    await (await page.mainFrame().$(`#rhView${process.env.CLIPPER_CARD_SERIAL}`)).click();
-
-    let exists = false;
-    do {
-      exists = await fs.exists(path.join(__dirname, 'pdf', `rideHistory_${process.env.CLIPPER_CARD_SERIAL}.pdf`));
-      if (!exists) await sleep(500);
-    } while (!exists);
-  } finally {
-    await browser.close();
-  }
-
-  return;
-
-  await api.transactions.createTransaction(process.env.BUDGET, {
-    "transaction": {
-      "account_id": process.env.ACCOUNT,
-      "date": '2019-06-30',
-      "amount": 4200,
-      "payee_name": "VTA",
-      "category_id": process.env.CATEGORY,
-      "memo": "import from Clipper",
-      "cleared": "cleared",
-      "import_id": +new Date() + '',
-    }
-  }).catch(e => console.error(e));
+  // await api.transactions.createTransaction(process.env.BUDGET, {
+  //   "transaction": {
+  //     "account_id": process.env.ACCOUNT,
+  //     "date": '2019-06-30',
+  //     "amount": 4200,
+  //     "payee_name": "VTA",
+  //     "category_id": process.env.CATEGORY,
+  //     "memo": "import from Clipper",
+  //     "cleared": "cleared",
+  //     "import_id": +new Date() + '',
+  //   }
+  // }).catch(e => console.error(e));
 };
 
 run();
