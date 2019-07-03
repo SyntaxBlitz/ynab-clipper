@@ -22,6 +22,11 @@ const getTransactions = buffer => {
           groupMap[text.y].push({ x: text.x, text: decodeURIComponent(text.R[0].T) });
         }
 
+        if (!(TABLE_HEADER_Y in groupMap)) {
+          // if a page (I think only page 0) has no transactions, it also has no header row
+          continue;
+        }
+
         const headerRow = groupMap[TABLE_HEADER_Y];
         const xMap = {};
         headerRow.forEach(c => xMap[c.x] = c.text);

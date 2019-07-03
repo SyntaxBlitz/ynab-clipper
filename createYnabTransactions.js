@@ -2,6 +2,8 @@ const dateformat = require('dateformat');
 const ynab = require('ynab');
 
 const createYnabTransactions = async transactions => {
+  if (transactions.length === 0) return;
+
   const api = new ynab.API(process.env.TOKEN);
 
   const ynabMemo = transaction => {
