@@ -3,7 +3,7 @@ const crypto = require('crypto-promise');
 const normalizeTransaction = transaction => {
   const obj = Object.create({
     digest: async function () {
-      return await crypto.hash('sha256')(JSON.stringify(this)).then(b => b.toString('hex'));
+      return await crypto.hash('sha256')(JSON.stringify(this) + 'salt2').then(b => b.toString('hex'));
     },
   });
 

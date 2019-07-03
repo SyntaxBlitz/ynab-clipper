@@ -34,25 +34,24 @@ const run = async () => {
     ),
     payee_name: 'Clipper', // TODO
     category_id: process.env.CATEGORY,
-    memo: `${dateformat(t.date, 'h:MM TT')}: ${t.location || '-'} ${t.route || '-'} (${t.description})`,
+    memo: ynabMemo(t),
     cleared: 'cleared',
-    import_id: (await t.digest()).substring(0, 36),
+    import_id: (await t.digest()).substring(0, 36), // ynab only allows 36 chars
   })));
 
   await api.transactions.createTransactions(process.env.BUDGET, { transactions: ynabTransactions } );
+};
 
-  // await api.transactions.createTransaction(process.env.BUDGET, {
-  //   "transaction": {
-  //     "account_id": process.env.ACCOUNT,
-  //     "date": '2019-06-30',
-  //     "amount": 4200,
-  //     "payee_name": "VTA",
-  //     "category_id": process.env.CATEGORY,
-  //     "memo": "import from Clipper",
-  //     "cleared": "cleared",
-  //     "import_id": +new Date() + '',
-  //   }
-  // }).catch(e => console.error(e));
+const ynabMemo = transaction => {
+  const afterDate = () => {
+    if (transaction.location === '' && transaction.route === '') {
+      return transaction.description;
+    }
+
+    return `${transaction.location}${transaction.route !== '' ? ' ' + transaction.route : ''} (${transaction.description})`;
+  };
+
+  return `${dateformat(transaction.date, 'h:MM TT')}: ${afterDate()}`;
 };
 
 run();
