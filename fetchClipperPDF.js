@@ -53,7 +53,7 @@ const fetchClipperPDF = async () => {
     } while (!exists);
 
     const buffer = await fs.readFile(pdfPath);
-    // await fs.unlink(pdfPath);
+    await fs.unlink(pdfPath);
     return buffer;
   } finally {
     await browser.close();
