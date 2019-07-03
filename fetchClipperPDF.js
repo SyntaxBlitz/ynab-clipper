@@ -1,3 +1,4 @@
+const dateformat = require('dateformat');
 const puppeteer = require('puppeteer-extra'); // overkill? probably. but I'm having a good time
 const path = require('path');
 const fs = require('fs-extra');
@@ -40,8 +41,8 @@ const fetchClipperPDF = async () => {
 
     await (await page.mainFrame().$(`#tran${process.env.CLIPPER_CARD_SERIAL}`)).click();
 
-    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type('06/01/2019');
-    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type('06/30/2019');
+    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date() - 7 * 24 * 60 * 60 * 1000, 'mm/dd/yyyy'));
+    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date(), 'mm/dd/yyyy'));
 
     await (await page.mainFrame().$(`#rhView${process.env.CLIPPER_CARD_SERIAL}`)).click();
 
