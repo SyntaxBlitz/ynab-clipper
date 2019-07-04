@@ -42,7 +42,13 @@ const fetchClipperPDF = async () => {
     await (await page.mainFrame().$(`#tran${process.env.CLIPPER_CARD_SERIAL}`)).click();
 
     await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date() - 7 * 24 * 60 * 60 * 1000, 'mm/dd/yyyy'));
+    await sleep(250);
+    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).press('Enter');
+    await sleep(250);
     await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date(), 'mm/dd/yyyy'));
+    await sleep(250);
+    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).press('Enter');
+    await sleep(250);
 
     await (await page.mainFrame().$(`#rhView${process.env.CLIPPER_CARD_SERIAL}`)).click();
 
