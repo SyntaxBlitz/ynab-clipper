@@ -21,9 +21,7 @@ Run `node run.js`. You'll probably want to automate doing this periodically, at 
 - Allow for other products than Clipper Cash (I don't use these, so I don't know how they work)
 - Figure out how to do it headlessly (PDF downloads are awkward)
   - honestly can probably just use raw http(s) requests, I just wanted to try using puppeteer because I'd never done it before
-- Set payee dynamically:
-  - to the correct transport agency depending on the description
-  - to a payment/transfer transaction type if you're reloading from a credit card (will probably have to make assumptions, like "this card only gets money through auto-reload from this account")
+- Set payee dynamically to the correct transport agency depending on the description
 
 ## License
 
