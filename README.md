@@ -21,6 +21,7 @@ Run `node run.js`. You'll probably want to automate doing this periodically, at 
 - Allow for other products than Clipper Cash (I don't use these, so I don't know how they work)
 - Figure out how to do it headlessly (PDF downloads are awkward)
   - honestly can probably just use raw http(s) requests, I just wanted to try using puppeteer because I'd never done it before
+  - for now, can use `xvfb-run node run.js` on the server
 - Set payee dynamically to the correct transport agency depending on the description
 
 ## License
