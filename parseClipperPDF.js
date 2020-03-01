@@ -14,7 +14,7 @@ const getTransactions = buffer => {
 
       for (let i = 0; i < data.formImage.Pages.length; i++) {
         const texts = data.formImage.Pages[i].Texts;
-        const TABLE_HEADER_Y = i === 0 ? '5.547' : '2.303';
+        const TABLE_HEADER_Y = i === 0 ? '5.121' : '2.144';
 
         const groupMap = {};
         for (const text of texts) {
