@@ -27,30 +27,46 @@ const fetchClipperPDF = async () => {
 
   try {
     const page = await browser.newPage();
-    await page.goto('https://www.clippercard.com/ClipperWeb/index.do');
+    await page.goto('https://www.clippercard.com/ClipperWeb/login.html');
 
-    await page.mainFrame().click('#myRollover');
-
-    const [ loginFrame ] = page.mainFrame().childFrames().filter(f => f.url() === 'https://www.clippercard.com/ClipperCard/loginFrame.jsf');
-
-    await (await loginFrame.$('#j_idt13\\:username')).type(process.env.CLIPPER_USERNAME);
-    await (await loginFrame.$('#j_idt13\\:password')).type(process.env.CLIPPER_PASSWORD);
-    await (await loginFrame.$('#j_idt13\\:password')).press('Enter');
+    await (await page.mainFrame().$('#input-email')).type(process.env.CLIPPER_USERNAME);
+    await (await page.mainFrame().$('#input-password')).type(process.env.CLIPPER_PASSWORD);
+    await (await page.mainFrame().$('#input-password')).press('Enter');
 
     await page.waitForNavigation();
 
-    await (await page.mainFrame().$(`#tran${process.env.CLIPPER_CARD_SERIAL}`)).click();
+    // we don't actually need to do this, the link shows up either way lol
+    // const accordionButton = await page.mainFrame().$(`[aria-controls="#clipper-card-info-${process.env.CLIPPER_CARD_SERIAL}"][aria-expanded="false"]`);
+    // if (accordionButton !== null) { // isn't expanded yet
+    //   await accordionButton.evaluate(el => {
+    //     el.scrollIntoView();
+    //   });
+    //   await sleep(500);
+    //   await accordionButton.click();
+    //   await sleep(500);
+    // }
 
-    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date() - 7 * 24 * 60 * 60 * 1000, 'mm/dd/yyyy'));
-    await sleep(250);
-    await (await page.mainFrame().$(`#rhStartDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).press('Enter');
-    await sleep(250);
-    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).type(dateformat(new Date(), 'mm/dd/yyyy'));
-    await sleep(250);
-    await (await page.mainFrame().$(`#rhEndDateTxt${process.env.CLIPPER_CARD_SERIAL}`)).press('Enter');
-    await sleep(250);
+    const activityMenuButton = await page.mainFrame().$(`[data-current-card="${process.env.CLIPPER_CARD_SERIAL}"][data-form-action="/ClipperWeb/view-activity"]`);
+    const moreOptions = await activityMenuButton.evaluate(el => {
+      el.parentElement.parentElement.parentElement.querySelector('a').click();
+    });
+    await sleep(100);
+    await activityMenuButton.click();
 
-    await (await page.mainFrame().$(`#rhView${process.env.CLIPPER_CARD_SERIAL}`)).click();
+    await page.waitForNavigation();
+
+    const startField = await page.mainFrame().$(`#input-start-date`);
+    const endField = await page.mainFrame().$(`#input-end-date`);
+
+    await startField.focus();
+    await startField.click({ clickCount: 3 }); // goofy select-all
+    await startField.type(dateformat(new Date() - 7 * 24 * 60 * 60 * 1000, 'mmmm d, yyyy'));
+
+    await endField.focus();
+    await endField.click({ clickCount: 3 });
+    await endField.type(dateformat(new Date(), 'mmmm d, yyyy'));
+
+    await (await page.mainFrame().$(`button[type=submit]`)).click();
 
     let exists = false;
     const pdfPath = path.join(pdfDir, `rideHistory_${process.env.CLIPPER_CARD_SERIAL}.pdf`);
