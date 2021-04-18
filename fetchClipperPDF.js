@@ -35,19 +35,8 @@ const fetchClipperPDF = async () => {
 
     await page.waitForNavigation();
 
-    // we don't actually need to do this, the link shows up either way lol
-    // const accordionButton = await page.mainFrame().$(`[aria-controls="#clipper-card-info-${process.env.CLIPPER_CARD_SERIAL}"][aria-expanded="false"]`);
-    // if (accordionButton !== null) { // isn't expanded yet
-    //   await accordionButton.evaluate(el => {
-    //     el.scrollIntoView();
-    //   });
-    //   await sleep(500);
-    //   await accordionButton.click();
-    //   await sleep(500);
-    // }
-
     const activityMenuButton = await page.mainFrame().$(`[data-current-card="${process.env.CLIPPER_CARD_SERIAL}"][data-form-action="/ClipperWeb/view-activity"]`);
-    const moreOptions = await activityMenuButton.evaluate(el => {
+    await activityMenuButton.evaluate(el => {
       el.parentElement.parentElement.parentElement.querySelector('a').click();
     });
     await sleep(100);
