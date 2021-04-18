@@ -14,7 +14,8 @@ const getTransactions = buffer => {
 
       for (let i = 0; i < data.formImage.Pages.length; i++) {
         const texts = data.formImage.Pages[i].Texts;
-        const TABLE_HEADER_Y = i === 0 ? '5.547' : '2.144'; // todo: 2.144 is wrong but I don't have enough pandemic tx history to fix it lol
+        const TABLE_HEADER_Y = i === 0 ? '5.547' : '2.303'; // todo: 2.144 is wrong but I don't have enough pandemic tx history to fix it lol
+        // maybe it's a font thing? my server has this as 5.121 and 2.144 but my desktop needs 5.547 and presumably 2.303
 
         const groupMap = {};
         for (const text of texts) {
